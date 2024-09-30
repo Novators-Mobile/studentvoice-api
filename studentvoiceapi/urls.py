@@ -17,5 +17,5 @@ Including another URLconf
 from django.urls import path, include
 
 urlpatterns = [
-    path('api/admin/', include('api.urls'))
+    path('api/admin_api/', include('admin_api.urls'))
 ]

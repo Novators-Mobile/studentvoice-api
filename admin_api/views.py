@@ -1,9 +1,10 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UniversitySerializer
+from .decorators import admin_required
 from rest_framework import status
-from .models import CustomUser
+from .models import CustomUser, University
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 
@@ -42,3 +43,23 @@ def signup(request):
 @permission_classes([IsAuthenticated])
 def check_token(request):
     return Response({"passed for {}".format(request.user.username)})
+
+
+@api_view(['POST', 'GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def university_crud(request):
+    if request.method == "POST":
+        serializer = UniversitySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response("created", status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == "GET":
+        data = University.objects.all()
+        serializer = UniversitySerializer(data, many=True)
+
+        return Response(serializer.data)
