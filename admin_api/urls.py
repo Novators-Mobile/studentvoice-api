@@ -7,4 +7,5 @@ urlpatterns = [
     path('signup/', views.signup),
     path('checktoken/', views.check_token),
     path('university/', views.university_crud),
+    path('university/<int:pk>/', views.university_detail)
 ]

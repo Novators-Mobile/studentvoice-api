@@ -63,3 +63,28 @@ def university_crud(request):
         serializer = UniversitySerializer(data, many=True)
 
         return Response(serializer.data)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def university_detail(request, pk):
+    try:
+        university = University.objects.get(pk=pk)
+    except University.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = UniversitySerializer(university)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = UniversitySerializer(university, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        university.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
