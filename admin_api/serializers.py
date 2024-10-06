@@ -14,3 +14,9 @@ class UniversitySerializer(serializers.ModelSerializer):
         fields = ['name', 'address']
 
 
+class UniversityGetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = University
+        fields = ['id', 'name', 'address']
+
+

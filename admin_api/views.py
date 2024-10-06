@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .serializers import UserSerializer, UniversitySerializer
+from .serializers import UserSerializer, UniversitySerializer, UniversityGetSerializer
 from .decorators import admin_required
 from rest_framework import status
 from .models import CustomUser, University
@@ -60,7 +60,7 @@ def university_crud(request):
 
     if request.method == "GET":
         data = University.objects.all()
-        serializer = UniversitySerializer(data, many=True)
+        serializer = UniversityGetSerializer(data, many=True)
 
         return Response(serializer.data)
 
@@ -76,7 +76,7 @@ def university_detail(request, pk):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = UniversitySerializer(university)
+        serializer = UniversityGetSerializer(university)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
