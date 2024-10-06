@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .serializers import UserSerializer, UniversitySerializer, UniversityGetSerializer
+from .serializers import *
 from .decorators import admin_required
 from rest_framework import status
 from .models import CustomUser, University
@@ -88,3 +88,94 @@ def university_detail(request, pk):
     elif request.method == 'DELETE':
         university.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST', 'GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def subject_crud(request):
+    if request.method == 'POST':
+        serializer = SubjectSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response("created", status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'GET':
+        data = Subject.objects.all()
+        serializer = SubjectGetSerializer(data, many=True)
+
+        return Response(serializer.data)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def subject_detail(request, pk):
+    try:
+        subject = Subject.objects.get(pk=pk)
+    except Subject.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = SubjectGetSerializer(subject)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = SubjectSerializer(subject, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        subject.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST', 'GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def meeting_crud(request):
+    if request.method == 'POST':
+        serializer = MeetingSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response("created", status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'GET':
+        data = Meeting.objects.all()
+        serializer = MeetingGetSerializer(data, many=True)
+
+        return Response(serializer.data)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def meeting_detail(request, pk):
+    try:
+        meeting = Meeting.objects.get(pk=pk)
+    except Meeting.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = MeetingGetSerializer(meeting)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = MeetingSerializer(meeting, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        meeting.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
