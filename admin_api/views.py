@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from .filters import UniversityFilter, SubjectFilter, MeetingFilter
 
 from .serializers import *
 from .decorators import admin_required
@@ -60,6 +61,15 @@ def university_crud(request):
 
     if request.method == "GET":
         data = University.objects.all()
+        filterset_class = UniversityFilter
+        filterset = filterset_class(request.GET, queryset=data)
+        if filterset.is_valid():
+            data = filterset.qs
+
+        search = request.GET.get('search', None)
+        if search:
+            data = data.filter(name__icontains=search) | data.filter(address__icontains=search)
+
         serializer = UniversityGetSerializer(data, many=True)
 
         return Response(serializer.data)
@@ -105,6 +115,14 @@ def subject_crud(request):
 
     elif request.method == 'GET':
         data = Subject.objects.all()
+        filterset_class = SubjectFilter
+        filterset = filterset_class(request.GET, queryset=data)
+        if filterset.is_valid():
+            data = filterset.qs
+
+        search = request.GET.get('search', None)
+        if search:
+            data = data.filter(name__icontains=search)
         serializer = SubjectGetSerializer(data, many=True)
 
         return Response(serializer.data)
@@ -149,7 +167,12 @@ def meeting_crud(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'GET':
+        print(request.query_params)
         data = Meeting.objects.all()
+        filterset_class = MeetingFilter
+        filterset = filterset_class(request.GET, queryset=data)
+        if filterset.is_valid():
+            data = filterset.qs
         serializer = MeetingGetSerializer(data, many=True)
 
         return Response(serializer.data)
@@ -166,6 +189,7 @@ def meeting_detail(request, pk):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
+
         serializer = MeetingGetSerializer(meeting)
         return Response(serializer.data)
 
@@ -178,4 +202,3 @@ def meeting_detail(request, pk):
     elif request.method == 'DELETE':
         meeting.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
