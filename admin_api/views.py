@@ -2,6 +2,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .filters import UniversityFilter, SubjectFilter, MeetingFilter
 
+from itertools import chain
+
 from .serializers import *
 from .decorators import admin_required
 from rest_framework import status
@@ -13,6 +15,7 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from .authentication import BearerTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
 
 @api_view(['POST'])
@@ -202,3 +205,26 @@ def meeting_detail(request, pk):
     elif request.method == 'DELETE':
         meeting.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST', 'GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def search_all(request):
+    search = request.GET.get('search', None)
+    if search:
+        subjects = Subject.objects.filter(name__contains=search)
+        teachers = CustomUser.objects.filter((Q(first_name__icontains=search) | Q(last_name__icontains=search)
+                                             | Q(username__icontains=search)) & Q(user_type__icontains="teacher"))
+        universities = University.objects.filter(name__icontains=search)
+
+        results = {
+            "subjects": list(subjects.values()),
+            "teachers": list(teachers.values()),
+            "universities": list(universities.values())
+        }
+
+        return Response(results, status=status.HTTP_200_OK)
+
+    return Response({"detail": "No search query provided."}, status=status.HTTP_400_BAD_REQUEST)
