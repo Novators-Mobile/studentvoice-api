@@ -34,11 +34,11 @@ class SubjectGetSerializer(serializers.ModelSerializer):
 
 class MeetingSerializer(serializers.ModelSerializer):
     class Meta:
-        moodel = Meeting
+        model = Meeting
         fields = ['subject', 'date']
 
 
 class MeetingGetSerializer(serializers.ModelSerializer):
     class Meta:
-        moodel = Meeting
+        model = Meeting
         fields = ['id', 'subject', 'date']

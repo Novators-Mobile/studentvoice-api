@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'admin_api',
+    'polls',
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
