@@ -170,6 +170,7 @@ def meeting_crud(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'GET':
+        print(request.query_params)
         data = Meeting.objects.all()
         filterset_class = MeetingFilter
         filterset = filterset_class(request.GET, queryset=data)
