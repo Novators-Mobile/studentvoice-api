@@ -22,7 +22,7 @@ from django.db.models import Q
 def login(request):
     user = get_object_or_404(CustomUser, username=request.data['username'])
     if not user.check_password(request.data['password']):
-        return Response({"detail": "not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "wrong username or password"}, status=status.HTTP_403_FORBIDDEN)
 
     token, created = Token.objects.get_or_create(user=user)
     serializer = UserSerializer(instance=user)
@@ -170,7 +170,6 @@ def meeting_crud(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'GET':
-        print(request.query_params)
         data = Meeting.objects.all()
         filterset_class = MeetingFilter
         filterset = filterset_class(request.GET, queryset=data)
