@@ -19,3 +19,9 @@ class SubjectFilter(django_filters.FilterSet):
     class Meta:
         model = Meeting
         fields = '__all__'
+
+
+class TeacherFilter(django_filters.FilterSet):
+    class Meta:
+        model = Teacher
+        fields = ['university']

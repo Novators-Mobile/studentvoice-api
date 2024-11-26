@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, University, Subject, Meeting
+from .models import CustomUser, University, Subject, Meeting, Teacher
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -11,25 +11,25 @@ class UserSerializer(serializers.ModelSerializer):
 class UniversitySerializer(serializers.ModelSerializer):
     class Meta:
         model = University
-        fields = ['name', 'address']
+        fields = ['name']
 
 
 class UniversityGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = University
-        fields = ['id', 'name', 'address']
+        fields = ['id', 'name']
 
 
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
-        fields = ['teacher', 'university', 'name']
+        fields = ['university', 'name']
 
 
 class SubjectGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
-        fields = ['id', 'teacher', 'university', 'name']
+        fields = ['id', 'teachers', 'university', 'name']
 
 
 class MeetingSerializer(serializers.ModelSerializer):
@@ -42,3 +42,15 @@ class MeetingGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting
         fields = ['id', 'subject', 'date']
+
+
+class TeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teacher
+        fields = ['first_name', 'second_name', 'patronymic', 'university', 'email', 'username', 'password']
+
+
+class TeacherGetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teacher
+        fields = ['first_name', 'second_name', 'patronymic', 'university', 'email', 'username']

@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .filters import UniversityFilter, SubjectFilter, MeetingFilter
+from .filters import UniversityFilter, SubjectFilter, MeetingFilter, TeacherFilter
 
 from itertools import chain
 
@@ -11,6 +11,7 @@ from .models import CustomUser, University
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 
+from .utils import generate_password
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from .authentication import BearerTokenAuthentication
@@ -227,3 +228,57 @@ def search_all(request):
         return Response(results, status=status.HTTP_200_OK)
 
     return Response({"detail": "No search query provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST', 'GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def teacher_crud(request):
+    if request.method == 'POST':
+        serializer = TeacherSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            teacher = Teacher.objects.get(username=request.data['username'])
+            password = generate_password()
+            teacher.set_password(password)
+            teacher.save()
+            serializer.data['password'] = password
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'GET':
+        data = Teacher.objects.all()
+        filterset_class = TeacherFilter
+
+        filterset = filterset_class(request.GET, queryset=data)
+        if filterset.is_valid():
+            data = filterset.qs
+        serializer = TeacherGetSerializer(data, many=True)
+        return Response(serializer.data)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+def teacher_detail(request, pk):
+    try:
+        teacher = Teacher.objects.get(pk=pk)
+    except Teacher.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+
+        serializer = TeacherGetSerializer(teacher)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = TeacherSerializer(teacher, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        teacher.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
