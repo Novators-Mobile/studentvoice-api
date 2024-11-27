@@ -2,15 +2,14 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .filters import UniversityFilter, SubjectFilter, MeetingFilter, TeacherFilter
 
-from itertools import chain
-
 from .serializers import *
 from .decorators import admin_required
 from rest_framework import status
 from .models import CustomUser, University
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
-
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from .utils import generate_password
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
@@ -18,9 +17,27 @@ from .authentication import BearerTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
+login_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    required=['username', 'password'],
+    properties={
+        'username': openapi.Schema(type=openapi.TYPE_STRING),
+        'password': openapi.Schema(type=openapi.TYPE_STRING),
+    },
+)
 
+
+@swagger_auto_schema(request_body=login_body,
+                     methods=['post'],
+                     responses={
+                         200: 'token',
+                         400: 'username and password must be provided',
+                         403: 'wrong username or password'
+                     })
 @api_view(['POST'])
 def login(request):
+    if 'username' not in request.data or 'password' not in request.data:
+        return Response({"detail": "username and password must be provided"}, status=status.HTTP_400_BAD_REQUEST)
     user = get_object_or_404(CustomUser, username=request.data['username'])
     if not user.check_password(request.data['password']):
         return Response({"detail": "wrong username or password"}, status=status.HTTP_403_FORBIDDEN)
@@ -30,8 +47,16 @@ def login(request):
     return Response({"token": token.key, "user": serializer.data})
 
 
+@swagger_auto_schema(methods=['post'],
+                     request_body=login_body,
+                     responses={
+                         200: 'token',
+                         400: 'username and password must be provided'
+                     })
 @api_view(['POST'])
 def signup(request):
+    if 'username' not in request.data or 'password' not in request.data:
+        return Response({"detail": "username and password must be provided"}, status=status.HTTP_400_BAD_REQUEST)
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -50,6 +75,16 @@ def check_token(request):
     return Response({"passed for {}".format(request.user.username)})
 
 
+@swagger_auto_schema(method='post', request_body=UniversitySerializer)
+@swagger_auto_schema(method='get', manual_parameters=[
+    openapi.Parameter('search', openapi.IN_QUERY, 'field for search', required=False,
+                      type=openapi.TYPE_STRING),
+    openapi.Parameter('name', openapi.IN_QUERY, 'field for filtering by name', required=False,
+                      type=openapi.TYPE_STRING)
+], responses={
+    200: 'result',
+    400: 'bad request'
+})
 @api_view(['POST', 'GET'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -104,6 +139,16 @@ def university_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@swagger_auto_schema(method='post', request_body=SubjectSerializer)
+@swagger_auto_schema(method='get', manual_parameters=[
+    openapi.Parameter('search', openapi.IN_QUERY, 'field for search', required=False,
+                      type=openapi.TYPE_STRING),
+    openapi.Parameter('teacher', openapi.IN_QUERY, 'field for filtering by teacher id', required=False,
+                      type=openapi.TYPE_INTEGER)
+], responses={
+    200: 'result',
+    400: 'bad request'
+})
 @api_view(['POST', 'GET'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -157,6 +202,14 @@ def subject_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@swagger_auto_schema(method='post', request_body=MeetingSerializer)
+@swagger_auto_schema(method='get', manual_parameters=[
+    openapi.Parameter('subject', openapi.IN_QUERY, 'field for filtering by subject id', required=False,
+                      type=openapi.TYPE_INTEGER)
+], responses={
+    200: 'result',
+    400: 'bad request'
+})
 @api_view(['POST', 'GET'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -207,7 +260,14 @@ def meeting_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['POST', 'GET'])
+@swagger_auto_schema(method='get', manual_parameters=[
+    openapi.Parameter('search', openapi.IN_QUERY, 'field for search', required=False,
+                      type=openapi.TYPE_STRING)
+], responses={
+    200: 'result',
+    400: 'bad request'
+}, operation_description="search for all entities")
+@api_view(['GET'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
 @admin_required
@@ -215,8 +275,8 @@ def search_all(request):
     search = request.GET.get('search', None)
     if search:
         subjects = Subject.objects.filter(name__contains=search)
-        teachers = CustomUser.objects.filter((Q(first_name__icontains=search) | Q(last_name__icontains=search)
-                                             | Q(username__icontains=search)) & Q(user_type__icontains="teacher"))
+        teachers = Teacher.objects.filter((Q(first_name__icontains=search) | Q(last_name__icontains=search)
+                                           | Q(username__icontains=search)) & Q(user_type__icontains="teacher"))
         universities = University.objects.filter(name__icontains=search)
 
         results = {
@@ -230,6 +290,16 @@ def search_all(request):
     return Response({"detail": "No search query provided."}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(method='post', request_body=TeacherSerializer, operation_description="Create teacher")
+@swagger_auto_schema(method='get', manual_parameters=[
+    openapi.Parameter('search', openapi.IN_QUERY, 'field for search', required=False,
+                      type=openapi.TYPE_STRING),
+    openapi.Parameter('university', openapi.IN_QUERY, 'field for filtering by university id', required=False,
+                      type=openapi.TYPE_STRING)
+], responses={
+    200: 'result',
+    400: 'bad request'
+})
 @api_view(['POST', 'GET'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -240,11 +310,13 @@ def teacher_crud(request):
         if serializer.is_valid():
             serializer.save()
             teacher = Teacher.objects.get(username=request.data['username'])
+            teacher.user_type = "teacher"
             password = generate_password()
             teacher.set_password(password)
             teacher.save()
-            serializer.data['password'] = password
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            data = serializer.data
+            data['password'] = password
+            return Response(data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

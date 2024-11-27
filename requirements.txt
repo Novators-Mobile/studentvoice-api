@@ -2,3 +2,5 @@ Django
 djangorestframework
 django-filter
 django-cors-headers
+drf-yasg
+drf-yasg[validation]

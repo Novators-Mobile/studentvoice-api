@@ -6,7 +6,7 @@ from .models import *
 class UniversityFilter(django_filters.FilterSet):
     class Meta:
         model = University
-        fields = ['name', 'address']
+        fields = ['name']
 
 
 class MeetingFilter(django_filters.FilterSet):
@@ -17,7 +17,7 @@ class MeetingFilter(django_filters.FilterSet):
 
 class SubjectFilter(django_filters.FilterSet):
     class Meta:
-        model = Meeting
+        model = Subject
         fields = '__all__'
 
 

@@ -1,3 +1,5 @@
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,6 +11,12 @@ from .models import Poll, PollResult
 from .serializers import PollSerializer, PollResultSerializer
 
 
+@swagger_auto_schema(method='post', request_body=PollSerializer)
+@swagger_auto_schema(method='get',
+                     responses={
+                         200: 'result',
+                         400: 'bad request'
+                     })
 @api_view(['POST', 'GET'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -51,6 +59,12 @@ def poll_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@swagger_auto_schema(method='post', request_body=PollSerializer)
+@swagger_auto_schema(method='get', operation_description="get all results from poll",
+                     responses={
+                         200: 'result',
+                         400: 'bad request'
+                     })
 @api_view(['POST', 'GET'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])

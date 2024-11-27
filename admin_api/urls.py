@@ -12,5 +12,7 @@ urlpatterns = [
     path('meeting/<int:pk>/', views.meeting_detail),
     path('subject/', views.subject_crud),
     path('subject/<int:pk>/', views.subject_detail),
-    path('all/', views.search_all)
+    path('all/', views.search_all),
+    path('teacher/', views.teacher_crud),
+    path('teacher/<int:pk>/', views.teacher_detail)
 ]

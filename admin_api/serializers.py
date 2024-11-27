@@ -47,10 +47,10 @@ class MeetingGetSerializer(serializers.ModelSerializer):
 class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
-        fields = ['first_name', 'second_name', 'patronymic', 'university', 'email', 'username', 'password']
+        fields = ['first_name', 'second_name', 'patronymic', 'university', 'email', 'username']
 
 
 class TeacherGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
-        fields = ['first_name', 'second_name', 'patronymic', 'university', 'email', 'username']
+        fields = ['id', 'first_name', 'second_name', 'patronymic', 'university', 'email', 'username']

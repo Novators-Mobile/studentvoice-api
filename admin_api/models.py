@@ -16,11 +16,9 @@ class University(models.Model):
 
 
 class Teacher(CustomUser):
-    first_name = models.CharField(max_length=30, null=False)
     second_name = models.CharField(max_length=30, null=False)
     patronymic = models.CharField(max_length=30, null=False)
     university = models.ForeignKey(University, on_delete=models.CASCADE)
-    user_type = models.CharField(max_length=15, default='teacher')
 
 
 class Subject(models.Model):
