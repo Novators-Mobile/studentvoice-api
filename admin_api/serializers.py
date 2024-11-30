@@ -5,7 +5,7 @@ from .models import CustomUser, University, Subject, Meeting, Teacher
 class UserSerializer(serializers.ModelSerializer):
     class Meta(object):
         model = CustomUser
-        fields = ['id', 'username', 'password']
+        fields = ['id', 'username', 'user_type']
 
 
 class UniversitySerializer(serializers.ModelSerializer):
