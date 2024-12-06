@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from polls.models import Poll
 
 
 class CustomUser(AbstractUser):
@@ -30,3 +31,4 @@ class Subject(models.Model):
 class Meeting(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     date = models.DateTimeField()
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, null=True)
