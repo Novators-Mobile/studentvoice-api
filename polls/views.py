@@ -8,7 +8,7 @@ from rest_framework.authentication import SessionAuthentication
 from admin_api.authentication import BearerTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import Poll, PollResult
-from .serializers import PollSerializer, PollResultSerializer
+from .serializers import PollSerializer, PollResultSerializer, PollGetSerializer
 
 
 @swagger_auto_schema(method='post', request_body=PollSerializer)
@@ -30,7 +30,7 @@ def poll_crud(request):
 
     elif request.method == 'GET':
         data = Poll.objects.all()
-        serializer = PollSerializer(data, many=True)
+        serializer = PollGetSerializer(data, many=True)
 
         return Response(serializer.data)
 
@@ -45,7 +45,7 @@ def poll_detail(request, pk):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = PollSerializer(poll)
+        serializer = PollGetSerializer(poll)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
@@ -59,7 +59,7 @@ def poll_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@swagger_auto_schema(method='post', request_body=PollSerializer)
+@swagger_auto_schema(method='post', request_body=PollResultSerializer)
 @swagger_auto_schema(method='get', operation_description="get all results from poll",
                      responses={
                          200: 'result',

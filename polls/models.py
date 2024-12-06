@@ -1,11 +1,13 @@
 from django.db import models
-from admin_api.models import Subject
 
 
 class Poll(models.Model):
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    qrcode_path = models.CharField(max_length=256)
-    average_mark = models.FloatField(default=0)
+    average_mark = models.FloatField(null=True),
+    question1_avg_mark = models.FloatField(null=True)
+    question2_avg_mark = models.FloatField(null=True)
+    question3_avg_mark = models.FloatField(null=True)
+    question4_avg_mark = models.FloatField(null=True)
+    question5_avg_mark = models.FloatField(null=True)
 
 
 class PollResult(models.Model):
