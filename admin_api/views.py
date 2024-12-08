@@ -26,6 +26,17 @@ login_body = openapi.Schema(
     },
 )
 
+signup_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'username': openapi.Schema(type=openapi.TYPE_STRING),
+        'password': openapi.Schema(type=openapi.TYPE_STRING),
+        'first_name': openapi.Schema(type=openapi.TYPE_STRING),
+        'second_name': openapi.Schema(type=openapi.TYPE_STRING),
+        'patronymic': openapi.Schema(type=openapi.TYPE_STRING)
+    }
+)
+
 
 @swagger_auto_schema(request_body=login_body,
                      methods=['post'],

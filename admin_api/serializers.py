@@ -6,7 +6,7 @@ from polls.models import Poll
 class UserSerializer(serializers.ModelSerializer):
     class Meta(object):
         model = CustomUser
-        fields = ['id', 'username', 'user_type']
+        fields = ['id', 'first_name', 'second_name', 'patronymic', 'user_type']
 
 
 class UniversitySerializer(serializers.ModelSerializer):

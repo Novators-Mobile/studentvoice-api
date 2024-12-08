@@ -10,6 +10,8 @@ class CustomUser(AbstractUser):
     )
 
     user_type = models.CharField(max_length=15, choices=USER_TYPES, default='admin')
+    second_name = models.CharField(max_length=30, null=False, default='Testov')
+    patronymic = models.CharField(max_length=30, null=False, default='Testovich')
 
 
 class University(models.Model):
@@ -17,8 +19,6 @@ class University(models.Model):
 
 
 class Teacher(CustomUser):
-    second_name = models.CharField(max_length=30, null=False)
-    patronymic = models.CharField(max_length=30, null=False)
     university = models.ForeignKey(University, on_delete=models.CASCADE)
 
 
