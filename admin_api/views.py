@@ -59,7 +59,7 @@ def login(request):
 
 
 @swagger_auto_schema(methods=['post'],
-                     request_body=login_body,
+                     request_body=signup_body,
                      responses={
                          200: 'token',
                          400: 'username and password must be provided'
@@ -68,7 +68,12 @@ def login(request):
 def signup(request):
     if 'username' not in request.data or 'password' not in request.data:
         return Response({"detail": "username and password must be provided"}, status=status.HTTP_400_BAD_REQUEST)
-    serializer = UserSerializer(data=request.data)
+
+    user_exists = CustomUser.objects.filter(username=request.data['username']).first()
+    if user_exists:
+        return Response({"detail": "user already exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         user = CustomUser.objects.get(username=request.data['username'])

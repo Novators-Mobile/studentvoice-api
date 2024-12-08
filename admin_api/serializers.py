@@ -9,6 +9,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'first_name', 'second_name', 'patronymic', 'user_type']
 
 
+class SignUpSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = CustomUser
+        fields = ['id', 'first_name', 'second_name', 'patronymic', 'user_type', 'username', 'password']
+
 class UniversitySerializer(serializers.ModelSerializer):
     class Meta:
         model = University
