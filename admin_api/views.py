@@ -75,14 +75,18 @@ def check_token(request):
     return Response({"passed for {}".format(request.user.username)})
 
 
-@swagger_auto_schema(method='post', request_body=UniversitySerializer)
+@swagger_auto_schema(method='post', request_body=UniversitySerializer,
+                     responses={
+                         201: 'created',
+                         400: 'bad request'
+                     })
 @swagger_auto_schema(method='get', manual_parameters=[
     openapi.Parameter('search', openapi.IN_QUERY, 'field for search', required=False,
                       type=openapi.TYPE_STRING),
     openapi.Parameter('name', openapi.IN_QUERY, 'field for filtering by name', required=False,
                       type=openapi.TYPE_STRING)
 ], responses={
-    200: 'result',
+    200: UniversityGetSerializer.many_init(),
     400: 'bad request'
 })
 @api_view(['POST', 'GET'])
@@ -114,6 +118,20 @@ def university_crud(request):
         return Response(serializer.data)
 
 
+@swagger_auto_schema(method='get', responses={
+    404: 'not found',
+    200: UniversityGetSerializer
+})
+@swagger_auto_schema(method='put', request_body=UniversitySerializer,
+                     responses={
+                         200: UniversitySerializer,
+                         404: 'not found'
+                     })
+@swagger_auto_schema(method='delete',
+                     responses={
+                         204: 'deleted',
+                         404: 'not found'
+                     })
 @api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -139,14 +157,20 @@ def university_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@swagger_auto_schema(method='post', request_body=SubjectSerializer)
+@swagger_auto_schema(method='post', request_body=SubjectSerializer,
+                     responses={
+                         201: 'created',
+                         400: 'bad request'
+                     })
 @swagger_auto_schema(method='get', manual_parameters=[
-    openapi.Parameter('search', openapi.IN_QUERY, 'field for search', required=False,
+    openapi.Parameter('search', openapi.IN_QUERY, 'field for search by name', required=False,
                       type=openapi.TYPE_STRING),
     openapi.Parameter('teacher', openapi.IN_QUERY, 'field for filtering by teacher id', required=False,
-                      type=openapi.TYPE_INTEGER)
+                      type=openapi.TYPE_INTEGER),
+    openapi.Parameter('university', openapi.IN_QUERY, 'field for filtering by university id',
+                      required=False, type=openapi.TYPE_INTEGER)
 ], responses={
-    200: 'result',
+    200: SubjectGetSerializer.many_init(),
     400: 'bad request'
 })
 @api_view(['POST', 'GET'])
@@ -164,11 +188,13 @@ def subject_crud(request):
 
     elif request.method == 'GET':
         data = Subject.objects.all()
-        filterset_class = SubjectFilter
-        filterset = filterset_class(request.GET, queryset=data)
-        if filterset.is_valid():
-            data = filterset.qs
+        teacher = request.GET.get('teacher', None)
+        if teacher:
+            data = data.filter(teachers__in=[teacher])
 
+        university = request.GET.get('university', None)
+        if university:
+            data = data.filter(university__id=university)
         search = request.GET.get('search', None)
         if search:
             data = data.filter(name__icontains=search)
@@ -177,6 +203,20 @@ def subject_crud(request):
         return Response(serializer.data)
 
 
+@swagger_auto_schema(method='get', responses={
+    200: SubjectGetSerializer,
+    404: 'not found'
+})
+@swagger_auto_schema(method='put', request_body=SubjectSerializer,
+                     responses={
+                         200: SubjectSerializer,
+                         404: 'not found'
+                     })
+@swagger_auto_schema(method='delete',
+                     responses={
+                         204: 'no content',
+                         404: 'not found'
+                     })
 @api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -202,12 +242,53 @@ def subject_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@swagger_auto_schema(method='post', request_body=MeetingSerializer)
+@swagger_auto_schema(method='post', operation_description='add teacher to a subject',
+                     responses={
+                         200: 'teacher added',
+                         404: 'not found'
+                     })
+@swagger_auto_schema(method='delete', operation_description='remove teacher from subject',
+                     responses={
+                         204: 'removed',
+                         404: 'teacher not found'
+                     })
+@api_view(['POST', 'DELETE'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def subject_teacher_operations(request, pk, teacher_id):
+    try:
+        subject = Subject.objects.get(pk=pk)
+        teacher = Teacher.objects.get(pk=teacher_id)
+    except Subject.DoesNotExist:
+        return Response('subject not found', status=status.HTTP_404_NOT_FOUND)
+    except Teacher.DoesNotExist:
+        return Response('teacher not found', status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'POST':
+        subject.teachers.add(teacher)
+        return Response('teacher added')
+    elif request.method == 'DELETE':
+        if teacher not in subject.teachers.all():
+            return Response('teacher not found in this subject', status=status.HTTP_404_NOT_FOUND)
+        subject.teachers.remove(teacher)
+        return Response('removed', status=status.HTTP_204_NO_CONTENT)
+
+
+@swagger_auto_schema(method='post', request_body=MeetingSerializer,
+                     responses={
+                         201: 'created',
+                         400: 'bad request'
+                     }, operation_description='я хз почему teacher это строка)), сюда просто id учителя вставлять')
 @swagger_auto_schema(method='get', manual_parameters=[
     openapi.Parameter('subject', openapi.IN_QUERY, 'field for filtering by subject id', required=False,
-                      type=openapi.TYPE_INTEGER)
+                      type=openapi.TYPE_INTEGER),
+    openapi.Parameter('teacher', openapi.IN_QUERY, 'field for filtering by teacher id', required=False,
+                      type=openapi.TYPE_INTEGER),
+    openapi.Parameter('type', openapi.IN_QUERY, 'field for filtering by type (lecture or practice)', required=False,
+                      type=openapi.TYPE_STRING)
 ], responses={
-    200: 'result',
+    200: MeetingGetSerializer.many_init(),
     400: 'bad request'
 })
 @api_view(['POST', 'GET'])
@@ -225,15 +306,33 @@ def meeting_crud(request):
 
     elif request.method == 'GET':
         data = Meeting.objects.all()
-        filterset_class = MeetingFilter
-        filterset = filterset_class(request.GET, queryset=data)
-        if filterset.is_valid():
-            data = filterset.qs
+        subject = request.GET.get('subject', None)
+        if subject:
+            data = data.filter(subject_id=subject)
+        teacher = request.GET.get('teacher', None)
+        if teacher:
+            data = data.filter(teacher_id=teacher)
+        subject_type = request.GET.get('type', None)
+        if subject_type:
+            data = data.filter(type=subject_type)
         serializer = MeetingGetSerializer(data, many=True)
 
         return Response(serializer.data)
 
 
+@swagger_auto_schema(method='get', responses={
+    200: MeetingGetSerializer,
+    404: 'not found'
+})
+@swagger_auto_schema(method='put', request_body=MeetingSerializer,
+                     responses={
+                         200: MeetingSerializer,
+                         404: 'not found'
+                     })
+@swagger_auto_schema(method='delete', responses={
+    204: 'no content',
+    404: 'not found'
+})
 @api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -264,7 +363,7 @@ def meeting_detail(request, pk):
     openapi.Parameter('search', openapi.IN_QUERY, 'field for search', required=False,
                       type=openapi.TYPE_STRING)
 ], responses={
-    200: 'result',
+    200: SearchResultSerializer,
     400: 'bad request'
 }, operation_description="search for all entities")
 @api_view(['GET'])
@@ -331,6 +430,19 @@ def teacher_crud(request):
         return Response(serializer.data)
 
 
+@swagger_auto_schema(method='get', responses={
+    200: TeacherGetSerializer,
+    404: 'not found'
+})
+@swagger_auto_schema(method='put', request_body=TeacherSerializer, responses={
+    200: TeacherSerializer,
+    404: 'not found',
+    400: 'bad request'
+})
+@swagger_auto_schema(method='delete', responses={
+    204: 'no content',
+    404: 'not found'
+})
 @api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 def teacher_detail(request, pk):

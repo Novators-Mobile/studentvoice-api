@@ -10,15 +10,16 @@ class UniversityFilter(django_filters.FilterSet):
 
 
 class MeetingFilter(django_filters.FilterSet):
+
     class Meta:
         model = Meeting
-        fields = ['subject', 'date']
+        fields = '__all__'
 
 
 class SubjectFilter(django_filters.FilterSet):
     class Meta:
         model = Subject
-        fields = '__all__'
+        fields = ['teachers']
 
 
 class TeacherFilter(django_filters.FilterSet):

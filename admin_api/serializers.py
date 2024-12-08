@@ -41,13 +41,13 @@ class MeetingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Meeting
-        fields = ['subject', 'date']
+        fields = ['subject', 'date', 'teacher', 'type']
 
 
 class MeetingGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting
-        fields = ['id', 'subject', 'date', 'poll']
+        fields = ['id', 'subject', 'date', 'poll', 'teacher', 'type']
 
 
 class TeacherSerializer(serializers.ModelSerializer):
@@ -60,3 +60,9 @@ class TeacherGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
         fields = ['id', 'first_name', 'second_name', 'patronymic', 'university', 'email', 'username']
+
+
+class SearchResultSerializer(serializers.Serializer):
+    subjects = serializers.ListField()
+    teachers = serializers.ListField()
+    universities = serializers.ListField()

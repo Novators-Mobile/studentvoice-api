@@ -29,6 +29,12 @@ class Subject(models.Model):
 
 
 class Meeting(models.Model):
+    MEETING_TYPES = (
+        ('lecture', 'Лекция'),
+        ('practice', 'Практика')
+    )
+    type = models.CharField(max_length=15, choices=MEETING_TYPES, default='lecture')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     date = models.DateTimeField()
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, null=True)
