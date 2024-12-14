@@ -19,7 +19,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 class UniversitySerializer(serializers.ModelSerializer):
     class Meta:
         model = University
-        fields = ['name']
+        fields = ['name', 'short_name']
 
 
 class UniversityGetSerializer(serializers.ModelSerializer):
@@ -29,7 +29,7 @@ class UniversityGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = University
-        fields = ['id', 'name', 'rating', 'teachers_rating', 'subjects_rating']
+        fields = ['id', 'name', 'short_name', 'rating', 'teachers_rating', 'subjects_rating']
 
     def get_rating(self, obj):
         subjects = Subject.objects.filter(university=obj.id).all()

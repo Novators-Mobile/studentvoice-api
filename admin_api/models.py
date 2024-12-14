@@ -16,6 +16,7 @@ class CustomUser(AbstractUser):
 
 class University(models.Model):
     name = models.CharField(max_length=256)
+    short_name = models.CharField(max_length=256, default='none')
 
 
 class Teacher(CustomUser):
