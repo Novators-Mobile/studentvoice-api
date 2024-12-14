@@ -45,6 +45,8 @@ class UniversityGetSerializer(serializers.ModelSerializer):
             poll_ratings = polls.values('question1_avg_mark', 'question2_avg_mark', 'question3_avg_mark',
                                         'question4_avg_mark', 'question5_avg_mark')
             poll_ratings = list(map(lambda x: sum(x.values()) / 5, poll_ratings))
+            if len(poll_ratings) == 0:
+                return None
             return mean(poll_ratings)
         return None
 
@@ -52,12 +54,16 @@ class UniversityGetSerializer(serializers.ModelSerializer):
         teachers = Teacher.objects.filter(university=obj.id).all()
         serializer = TeacherGetSerializer(teachers, many=True)
         data = list(map(lambda x: x['rating'], serializer.data))
+        if len(data) == 0:
+            return None
         return mean(data)
 
     def get_subjects_rating(self, obj):
         subjects = Subject.objects.filter(university=obj.id).all()
         serializer = SubjectGetSerializer(subjects, many=True)
         data = list(map(lambda x: x['rating'], serializer.data))
+        if len(data) == 0:
+            return None
         return mean(data)
 
 
@@ -86,6 +92,8 @@ class SubjectGetSerializer(serializers.ModelSerializer):
         poll_ratings = polls.values('question1_avg_mark', 'question2_avg_mark', 'question3_avg_mark',
                                     'question4_avg_mark', 'question5_avg_mark')
         poll_ratings = list(map(lambda x: sum(x.values()) / 5, poll_ratings))
+        if len(poll_ratings) == 0:
+            return None
         return mean(poll_ratings)
 
 
@@ -139,6 +147,8 @@ class TeacherGetSerializer(serializers.ModelSerializer):
         poll_ratings = polls.values('question1_avg_mark', 'question2_avg_mark', 'question3_avg_mark',
                                     'question4_avg_mark', 'question5_avg_mark')
         poll_ratings = list(map(lambda x: sum(x.values()) / 5, poll_ratings))
+        if len(poll_ratings) == 0:
+            return None
         return mean(poll_ratings)
 
 
