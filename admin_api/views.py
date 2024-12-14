@@ -410,6 +410,8 @@ def search_all(request):
     openapi.Parameter('search', openapi.IN_QUERY, 'field for search', required=False,
                       type=openapi.TYPE_STRING),
     openapi.Parameter('university', openapi.IN_QUERY, 'field for filtering by university id', required=False,
+                      type=openapi.TYPE_STRING),
+    openapi.Parameter('subject', openapi.IN_QUERY, 'field for filtering by subject id', required=False,
                       type=openapi.TYPE_STRING)
 ], responses={
     200: 'result',
@@ -438,12 +440,17 @@ def teacher_crud(request):
     elif request.method == 'GET':
         data = Teacher.objects.all()
         filterset_class = TeacherFilter
-
-        filterset = filterset_class(request.GET, queryset=data)
-        if filterset.is_valid():
-            data = filterset.qs
-        serializer = TeacherGetSerializer(data, many=True)
-        return Response(serializer.data)
+        subject_id = request.GET.get('subject', None)
+        if subject_id is not None:
+            data = data.filter(subject__id=subject_id)
+            serializer = TeacherGetSerializer(data, many=True)
+            return Response(serializer.data)
+        else:
+            filterset = filterset_class(request.GET, queryset=data)
+            if filterset.is_valid():
+                data = filterset.qs
+            serializer = TeacherGetSerializer(data, many=True)
+            return Response(serializer.data)
 
 
 @swagger_auto_schema(method='get', responses={
