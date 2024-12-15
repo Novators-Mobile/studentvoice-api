@@ -34,6 +34,7 @@ class Meeting(models.Model):
         ('lecture', 'Лекция'),
         ('practice', 'Практика')
     )
+    name = models.CharField(max_length=256, null=True)
     type = models.CharField(max_length=15, choices=MEETING_TYPES, default='lecture')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     date = models.DateTimeField()

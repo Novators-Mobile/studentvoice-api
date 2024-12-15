@@ -127,7 +127,8 @@ def university_crud(request):
 
         search = request.GET.get('search', None)
         if search:
-            data = data.filter(name__icontains=search) | data.filter(address__icontains=search)
+            search = search.lower()
+            data = data.filter(name__icontains=search)
 
         serializer = UniversityGetSerializer(data, many=True)
 
@@ -213,6 +214,7 @@ def subject_crud(request):
             data = data.filter(university__id=university)
         search = request.GET.get('search', None)
         if search:
+            search = search.lower()
             data = data.filter(name__icontains=search)
         serializer = SubjectGetSerializer(data, many=True)
 
@@ -302,6 +304,8 @@ def subject_teacher_operations(request, pk, teacher_id):
     openapi.Parameter('teacher', openapi.IN_QUERY, 'field for filtering by teacher id', required=False,
                       type=openapi.TYPE_INTEGER),
     openapi.Parameter('type', openapi.IN_QUERY, 'field for filtering by type (lecture or practice)', required=False,
+                      type=openapi.TYPE_STRING),
+    openapi.Parameter('search', openapi.IN_QUERY, 'field for searching by name', required=False,
                       type=openapi.TYPE_STRING)
 ], responses={
     200: MeetingGetSerializer.many_init(),
@@ -331,6 +335,11 @@ def meeting_crud(request):
         subject_type = request.GET.get('type', None)
         if subject_type:
             data = data.filter(type=subject_type)
+
+        search = request.GET.get('search', None)
+        if search:
+            search = search.lower()
+            data = data.filter(name__icontains=search)
         serializer = MeetingGetSerializer(data, many=True)
 
         return Response(serializer.data)
@@ -389,8 +398,10 @@ def meeting_detail(request, pk):
 def search_all(request):
     search = request.GET.get('search', None)
     if search:
+        search = search.lower()
         subjects = Subject.objects.filter(name__contains=search)
-        teachers = Teacher.objects.filter((Q(first_name__icontains=search) | Q(last_name__icontains=search)
+        teachers = Teacher.objects.filter((Q(first_name__icontains=search) | Q(second_name__icontains=search)
+                                           | Q(patronymic__icontains=search)
                                            | Q(username__icontains=search)) & Q(user_type__icontains="teacher"))
         universities = University.objects.filter(name__icontains=search)
 
@@ -441,6 +452,12 @@ def teacher_crud(request):
         data = Teacher.objects.all()
         filterset_class = TeacherFilter
         subject_id = request.GET.get('subject', None)
+        search = request.GET.get('search', None)
+        if search:
+            search = search.lower()
+            data = data.filter((Q(first_name__icontains=search) | Q(second_name__icontains=search)
+                                | Q(patronymic__icontains=search)
+                                | Q(username__icontains=search)) & Q(user_type__icontains="teacher"))
         if subject_id is not None:
             data = data.filter(subject__id=subject_id)
             serializer = TeacherGetSerializer(data, many=True)

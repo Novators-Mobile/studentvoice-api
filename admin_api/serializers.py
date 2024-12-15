@@ -123,7 +123,7 @@ class MeetingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Meeting
-        fields = ['subject', 'date', 'teacher', 'type']
+        fields = ['subject', 'date', 'teacher', 'type', 'name']
 
 
 class MeetingGetSerializer(serializers.ModelSerializer):
@@ -131,7 +131,7 @@ class MeetingGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Meeting
-        fields = ['id', 'subject', 'date', 'poll', 'teacher', 'type', 'rating']
+        fields = ['id', 'name', 'subject', 'date', 'poll', 'teacher', 'type', 'rating']
 
     def get_rating(self, obj):
         poll = Poll.objects.get(pk=obj.id)
