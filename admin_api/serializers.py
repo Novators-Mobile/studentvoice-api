@@ -75,10 +75,12 @@ class SubjectSerializer(serializers.ModelSerializer):
 
 class SubjectGetSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
+    lecture_teachers = serializers.SerializerMethodField()
+    practice_teachers = serializers.SerializerMethodField()
 
     class Meta:
         model = Subject
-        fields = ['id', 'teachers', 'university', 'name', 'rating']
+        fields = ['id', 'teachers', 'university', 'name', 'rating', 'lecture_teachers', 'practice_teachers']
 
     def get_rating(self, obj):
         meetings = Meeting.objects.filter(subject=obj.id).all()
@@ -95,6 +97,22 @@ class SubjectGetSerializer(serializers.ModelSerializer):
         if len(poll_ratings) == 0:
             return None
         return mean(poll_ratings)
+
+    def get_lecture_teachers(self, obj):
+        lecture_teachers = set()
+        meetings = Meeting.objects.filter(type='lecture', subject=obj.id).all()
+        for meeting in meetings:
+            lecture_teachers.add(meeting.teacher_id)
+
+        return lecture_teachers
+
+    def get_practice_teachers(self, obj):
+        practice_teachers = set()
+        meetings = Meeting.objects.filter(type='lecture', subject=obj.id).all()
+        for meeting in meetings:
+            practice_teachers.add(meeting.teacher_id)
+
+        return practice_teachers
 
 
 class MeetingSerializer(serializers.ModelSerializer):
