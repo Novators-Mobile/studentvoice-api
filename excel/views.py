@@ -227,7 +227,7 @@ def subject_to_meeting(request, subject_id):
 
     sheet.cell(1, 1, 'Отчет по' + subject.name).style = header
     sheet.cell(2, 1, 'Дата и время обращения: ' + datetime.now().strftime("%d.%m.%Y %H:%M")).style = general
-    sheet.cell(4, 1, 'Дисциплина').style = tableheader
+    sheet.cell(4, 1, 'Пара').style = tableheader
     sheet.cell(4, 2, 'Балл').style = tableheader
 
     lastrow = 5
@@ -343,7 +343,7 @@ def teacher_to_meeting(request, teacher_id):
 
     sheet.cell(1, 1, 'Отчет по {} {} {}'.format(teacher.last_name, teacher.first_name, teacher.patronymic)).style = header
     sheet.cell(2, 1, 'Дата и время обращения: ' + datetime.now().strftime("%d.%m.%Y %H:%M")).style = general
-    sheet.cell(4, 1, 'Дисциплина').style = tableheader
+    sheet.cell(4, 1, 'Пара').style = tableheader
     sheet.cell(4, 2, 'Балл').style = tableheader
 
     lastrow = 5
