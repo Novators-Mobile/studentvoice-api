@@ -31,9 +31,9 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('api/admin_api/', include('admin_api.urls')),
-    path('api/teacher_api/', include('teacher_api.urls')),
-    path('api/polls/', include('polls.urls')),
-    path('api/excel/', include('excel.urls')),
+    path('admin_api/', include('admin_api.urls')),
+    path('teacher_api/', include('teacher_api.urls')),
+    path('polls/', include('polls.urls')),
+    path('excel/', include('excel.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui')
 ]
