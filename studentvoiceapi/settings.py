@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-tb0cpy1(8p%*scz9+9k36tym8=4b!6uv*=*7^0=lh*%%%b@14t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['novatorsmobile.ru']
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
