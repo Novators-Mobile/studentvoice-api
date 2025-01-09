@@ -190,3 +190,19 @@ class SearchResultSerializer(serializers.Serializer):
     subjects = serializers.ListField()
     teachers = serializers.ListField()
     universities = serializers.ListField()
+
+
+class MonthSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    rating = serializers.FloatField()
+
+
+class MonthStatisticsSerializer(serializers.Serializer):
+    months = MonthSerializer(many=True)
+
+
+class WeekStatisticsSerializer(serializers.Serializer):
+    first_week = serializers.FloatField()
+    second_week = serializers.FloatField()
+    third_week = serializers.FloatField()
+    fourth_week = serializers.FloatField()

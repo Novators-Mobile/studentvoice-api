@@ -1,7 +1,9 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .filters import UniversityFilter, SubjectFilter, MeetingFilter, TeacherFilter
-
+from .filters import TeacherFilter
+import datetime
+from django.utils import timezone
+from calendar import monthrange
 from .serializers import *
 from .decorators import admin_required
 from rest_framework import status
@@ -166,6 +168,43 @@ def university_detail(request, pk):
     elif request.method == 'DELETE':
         university.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@swagger_auto_schema(method='get', responses={
+    404: 'not found',
+    200: MonthStatisticsSerializer
+}, operation_description='get institute statistics by months')
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def university_month_statistics(request, pk):
+    try:
+        university = University.objects.get(pk=pk)
+    except University.DoesNotExist:
+        return Response("not found", status=status.HTTP_404_NOT_FOUND)
+
+    subjects = Subject.objects.filter(university=university.pk).all()
+    subjects = [subject.pk for subject in subjects]
+    data = {'months': []}
+    current_datetime = timezone.now()
+
+    for month in range(12):
+        month_range = monthrange(current_datetime.year, current_datetime.month)
+        datetime_max = current_datetime.replace(day=month_range[1])
+        datetime_min = current_datetime.replace(day=1)
+        month_meetings = Meeting.objects.filter(date__range=(datetime_min, datetime_max), subject__in=subjects).all()
+        meetings_serializer = MeetingGetSerializer(month_meetings, many=True)
+        month_ratings = [meeting['rating'] for meeting in meetings_serializer.data if meeting['rating'] > 0]
+        if len(month_ratings) > 0:
+            data['months'].append({"name": current_datetime.strftime("%B"),
+                                    "rating": sum(month_ratings) / len(month_ratings)})
+
+        current_datetime = datetime_min - datetime.timedelta(days=1)
+
+    serializer = MonthStatisticsSerializer(data=data)
+    if serializer.is_valid():
+        return Response(serializer.data)
 
 
 @swagger_auto_schema(method='post', request_body=SubjectSerializer,
