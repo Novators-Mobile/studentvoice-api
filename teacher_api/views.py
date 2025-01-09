@@ -3,8 +3,8 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from admin_api.authentication import BearerTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from admin_api.models import Meeting
-from admin_api.serializers import MeetingGetSerializer
+from admin_api.models import Meeting, Teacher, Subject
+from admin_api.serializers import MeetingGetSerializer, TeacherGetSerializer, SubjectGetSerializer
 from rest_framework.response import Response
 from admin_api.serializers import MeetingSerializer
 from rest_framework import status
@@ -103,3 +103,37 @@ def meeting_detail(request, pk):
     elif request.method == 'DELETE':
         meeting.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@swagger_auto_schema(method='get', responses={
+    200: TeacherGetSerializer,
+    404: 'not found'
+}, operation_description='get info about current logged in teacher')
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def teacher_me(request):
+    try:
+        teacher = Teacher.objects.get(pk=request.user.id)
+    except Teacher.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    serializer = TeacherGetSerializer(teacher)
+    return Response(serializer.data)
+
+
+@swagger_auto_schema(method='get', responses={
+    200: SubjectGetSerializer,
+    404: 'not found'
+}, operation_description='get info about current logged in teacher\'s subject by id')
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def subject_detail(request, pk):
+    try:
+        subject = Subject.objects.get(pk=pk)
+    except Subject.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    serializer = SubjectGetSerializer(subject)
+    return Response(serializer.data)

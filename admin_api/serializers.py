@@ -66,6 +66,7 @@ class UniversityGetSerializer(serializers.ModelSerializer):
         subjects = Subject.objects.filter(university=obj.id).all()
         serializer = SubjectGetSerializer(subjects, many=True)
         data = list(map(lambda x: x['rating'], serializer.data))
+        data = [x for x in data if x is not None]
         if len(data) == 0:
             return None
         return mean(data)
@@ -156,10 +157,15 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 class TeacherGetSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
+    lecture_subjects = serializers.SerializerMethodField()
+    practice_subjects = serializers.SerializerMethodField()
+    lecture_meetings = serializers.SerializerMethodField()
+    practice_meetings = serializers.SerializerMethodField()
 
     class Meta:
         model = Teacher
-        fields = ['id', 'first_name', 'second_name', 'patronymic', 'university', 'email', 'username', 'rating']
+        fields = ['id', 'first_name', 'second_name', 'patronymic', 'university', 'email', 'username', 'rating',
+                  'lecture_subjects', 'practice_subjects', 'practice_meetings', 'lecture_meetings']
 
     def get_rating(self, obj):
         meetings = Meeting.objects.filter(teacher=obj.id).all()
@@ -177,6 +183,30 @@ class TeacherGetSerializer(serializers.ModelSerializer):
         if len(poll_ratings) == 0:
             return None
         return mean(poll_ratings)
+
+    def get_lecture_subjects(self, obj):
+        lecture_subjects = set()
+        lecture_meetings = Meeting.objects.filter(teacher=obj.id, type='lecture').all()
+        for meeting in lecture_meetings:
+            lecture_subjects.add(meeting.subject.pk)
+
+        return lecture_subjects
+
+    def get_practice_subjects(self, obj):
+        practice_subjects = set()
+        practice_meetings = Meeting.objects.filter(teacher=obj.id, type='practice').all()
+        for meeting in practice_meetings:
+            practice_subjects.add(meeting.subject.pk)
+
+        return practice_subjects
+
+    def get_lecture_meetings(self, obj):
+        for meeting in Meeting.objects.filter(teacher=obj.id, type='lecture').all():
+            yield meeting.pk
+
+    def get_practice_meetings(self, obj):
+        for meeting in Meeting.objects.filter(teacher=obj.id, type='practice').all():
+            yield meeting.pk
 
 
 class SearchResultSerializer(serializers.Serializer):
