@@ -12,7 +12,8 @@ urlpatterns = [
     path('meeting/<int:pk>/', views.meeting_detail),
     path('subject/', views.subject_crud),
     path('subject/<int:pk>/', views.subject_detail),
-    path('subject/<int:pk>/teacher/<int:teacher_id>', views.subject_teacher_operations),
+    path('subject/<int:pk>/teacher/<int:teacher_id>/lecture/', views.subject_teacher_operations_lecture),
+    path('subject/<int:pk>/teacher/<int:teacher_id>/practice/', views.subject_teacher_operations_practice),
     path('search/', views.search_all),
     path('teacher/', views.teacher_crud),
     path('teacher/<int:pk>/', views.teacher_detail)

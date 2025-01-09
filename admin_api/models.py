@@ -25,6 +25,8 @@ class Teacher(CustomUser):
 
 class Subject(models.Model):
     teachers = models.ManyToManyField(Teacher)
+    lecture_teachers = models.ManyToManyField(Teacher, related_name="lecture_teachers")
+    practice_teachers = models.ManyToManyField(Teacher, related_name="practice_teachers")
     university = models.ForeignKey(University, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 

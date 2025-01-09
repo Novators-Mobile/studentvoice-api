@@ -268,7 +268,7 @@ def subject_detail(request, pk):
 @authentication_classes([SessionAuthentication, BearerTokenAuthentication])
 @permission_classes([IsAuthenticated])
 @admin_required
-def subject_teacher_operations(request, pk, teacher_id):
+def subject_teacher_operations_lecture(request, pk, teacher_id):
     try:
         subject = Subject.objects.get(pk=pk)
         teacher = Teacher.objects.get(pk=teacher_id)
@@ -278,14 +278,40 @@ def subject_teacher_operations(request, pk, teacher_id):
         return Response('teacher not found', status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'POST':
-        subject.teachers.add(teacher)
+        subject.lecture_teachers.add(teacher)
+        subject.save()
         return Response('teacher added')
     elif request.method == 'DELETE':
         if teacher not in subject.teachers.all():
             return Response('teacher not found in this subject', status=status.HTTP_404_NOT_FOUND)
         subject.teachers.remove(teacher)
+        subject.save()
         return Response('removed', status=status.HTTP_204_NO_CONTENT)
 
+
+@api_view(['POST', 'DELETE'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def subject_teacher_operations_practice(request, pk, teacher_id):
+    try:
+        subject = Subject.objects.get(pk=pk)
+        teacher = Teacher.objects.get(pk=teacher_id)
+    except Subject.DoesNotExist:
+        return Response('subject not found', status=status.HTTP_404_NOT_FOUND)
+    except Teacher.DoesNotExist:
+        return Response('teacher not found', status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'POST':
+        subject.practice_teachers.add(teacher)
+        subject.save()
+        return Response('teacher added')
+    elif request.method == 'DELETE':
+        if teacher not in subject.teachers.all():
+            return Response('teacher not found in this subject', status=status.HTTP_404_NOT_FOUND)
+        subject.practice_teachers.remove(teacher)
+        subject.save()
+        return Response('removed', status=status.HTTP_204_NO_CONTENT)
 
 @swagger_auto_schema(method='post', request_body=MeetingSerializer,
                      responses={
@@ -429,6 +455,8 @@ def search_all(request):
 def teacher_crud(request):
     if request.method == 'POST':
         serializer = TeacherSerializer(data=request.data)
+        lecture_subjects = serializer.initial_data.pop('lecture_subjects')
+        practice_subjects = serializer.initial_data.pop('practice_subjects')
         if serializer.is_valid():
             serializer.save()
             teacher = Teacher.objects.get(username=request.data['username'])
@@ -436,7 +464,17 @@ def teacher_crud(request):
             password = generate_password()
             teacher.set_password(password)
             teacher.save()
+
             data = serializer.data
+            lecture_subjects = Subject.objects.filter(pk__in=lecture_subjects).all()
+            for subject in lecture_subjects:
+                subject.lecture_teachers.add(teacher)
+                subject.save()
+
+            practice_subjects = Subject.objects.filter(pk__in=practice_subjects).all()
+            for subject in practice_subjects:
+                subject.practice_teachers.add(teacher)
+                subject.save()
             data['password'] = password
             return Response(data, status=status.HTTP_201_CREATED)
 
