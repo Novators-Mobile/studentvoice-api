@@ -10,7 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py makemigrations
+RUN python manage.py makemigrations admin_api
+RUN python manage.py makemigrations polls
 RUN python manage.py migrate
 
 EXPOSE 80
