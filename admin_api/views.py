@@ -313,6 +313,7 @@ def subject_teacher_operations_practice(request, pk, teacher_id):
         subject.save()
         return Response('removed', status=status.HTTP_204_NO_CONTENT)
 
+
 @swagger_auto_schema(method='post', request_body=MeetingSerializer,
                      responses={
                          201: 'created',
@@ -455,8 +456,14 @@ def search_all(request):
 def teacher_crud(request):
     if request.method == 'POST':
         serializer = TeacherSerializer(data=request.data)
-        lecture_subjects = serializer.initial_data.pop('lecture_subjects')
-        practice_subjects = serializer.initial_data.pop('practice_subjects')
+        if 'lecture_subjects' in serializer.initial_data:
+            lecture_subjects = serializer.initial_data.pop('lecture_subjects')
+        else:
+            lecture_subjects = []
+        if 'practice_subjects' in serializer.initial_data:
+            practice_subjects = serializer.initial_data.pop('practice_subjects')
+        else:
+            practice_subjects = []
         if serializer.is_valid():
             serializer.save()
             teacher = Teacher.objects.get(username=request.data['username'])
