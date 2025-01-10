@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import PollResult, Poll
 from django.db.models import Sum
-from admin_api.models import Meeting, Teacher
+from admin_api.models import Meeting, Teacher, Subject
 
 
 class PollSerializer(serializers.ModelSerializer):
@@ -56,10 +56,11 @@ class PollResultSerializer(serializers.ModelSerializer):
 class MeetingWithTeacherGetSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     teacher_name = serializers.SerializerMethodField()
+    subject_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Meeting
-        fields = ['id', 'name', 'subject', 'date', 'poll', 'teacher', 'type', 'rating', 'teacher_name']
+        fields = ['id', 'name', 'subject', 'date', 'poll', 'teacher', 'type', 'rating', 'teacher_name', 'subject_name']
 
     def get_rating(self, obj):
         poll = Poll.objects.get(pk=obj.id)
@@ -72,3 +73,7 @@ class MeetingWithTeacherGetSerializer(serializers.ModelSerializer):
     def get_teacher_name(self, obj):
         teacher = Teacher.objects.get(pk=obj.teacher)
         return "{} {} {}".format(teacher.last_name, teacher.first_name, teacher.patronymic)
+
+    def get_subject_name(self, obj):
+        subject = Subject.objects.get(pk=obj.subject)
+        return subject.name
