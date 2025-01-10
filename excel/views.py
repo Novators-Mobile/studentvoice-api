@@ -327,7 +327,7 @@ def teacher_to_meeting(request, teacher_id):
     serializer = serializers.MeetingGetSerializer(meetings, many=True)
     data = list(map(lambda x: [Subject.objects.get(pk=x['subject']).name, x['date'], x['rating']], serializer.data))
     if len(data) == 0:
-        return None
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     header = NamedStyle(name="Заголовок документа", number_format="General",
                         font=Font(name='Times New Roman', bold=True, size=24),
