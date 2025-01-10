@@ -384,7 +384,7 @@ def subject_teacher_operations_lecture(request, pk, teacher_id):
         subject.save()
         return Response('teacher added')
     elif request.method == 'DELETE':
-        if teacher not in subject.lecture_teachers.all():
+        if teacher.pk not in [teacher.pk for teacher in subject.lecture_teachers.all()]:
             return Response('teacher not found in this subject', status=status.HTTP_404_NOT_FOUND)
         subject.lecture_teachers.remove(teacher)
         subject.save()
@@ -409,7 +409,7 @@ def subject_teacher_operations_practice(request, pk, teacher_id):
         subject.save()
         return Response('teacher added')
     elif request.method == 'DELETE':
-        if teacher not in subject.practice_teachers.all():
+        if teacher.pk not in [teacher.pk for teacher in subject.practice_teachers.all()]:
             return Response('teacher not found in this subject', status=status.HTTP_404_NOT_FOUND)
         subject.practice_teachers.remove(teacher)
         subject.save()

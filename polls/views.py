@@ -8,7 +8,8 @@ from rest_framework.authentication import SessionAuthentication
 from admin_api.authentication import BearerTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import Poll, PollResult
-from .serializers import PollSerializer, PollResultSerializer, PollGetSerializer
+from admin_api.models import Meeting
+from .serializers import PollSerializer, PollResultSerializer, PollGetSerializer, MeetingGetSerializer
 
 
 @swagger_auto_schema(method='post', request_body=PollSerializer)
@@ -49,6 +50,23 @@ def poll_get(request, pk):
 
     if request.method == 'GET':
         serializer = PollGetSerializer(poll)
+        return Response(serializer.data)
+
+
+@swagger_auto_schema(method='get',
+                     responses={
+                         200: MeetingGetSerializer,
+                         400: 'bad request'
+                     })
+@api_view(['GET'])
+def meeting_get(request, poll_pk):
+    try:
+        meeting = Meeting.objects.get(pk=poll_pk)
+    except Meeting.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = MeetingGetSerializer(meeting)
         return Response(serializer.data)
 
 

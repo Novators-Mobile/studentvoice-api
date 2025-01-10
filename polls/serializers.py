@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import PollResult, Poll
 from django.db.models import Sum
+from admin_api.models import Meeting, Teacher
 
 
 class PollSerializer(serializers.ModelSerializer):
@@ -50,3 +51,24 @@ class PollResultSerializer(serializers.ModelSerializer):
         poll.question5_avg_mark = poll_result_sum_question5 / poll_results_count
         poll.save()
         return PollResult.objects.create(**validated_data)
+
+
+class MeetingGetSerializer(serializers.ModelSerializer):
+    rating = serializers.SerializerMethodField()
+    teacher_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Meeting
+        fields = ['id', 'name', 'subject', 'date', 'poll', 'teacher', 'type', 'rating', 'teacher_name']
+
+    def get_rating(self, obj):
+        poll = Poll.objects.get(pk=obj.id)
+        if all([poll.question5_avg_mark, poll.question4_avg_mark, poll.question3_avg_mark, poll.question2_avg_mark, poll.question1_avg_mark]):
+            mark = (poll.question1_avg_mark + poll.question2_avg_mark + poll.question3_avg_mark + poll.question4_avg_mark
+                    + poll.question5_avg_mark)
+            return mark / 5
+        return 0
+
+    def get_teacher_name(self, obj):
+        teacher = Teacher.objects.get(pk=obj.teacher)
+        return "{} {} {}".format(teacher.last_name, teacher.first_name, teacher.patronymic)
