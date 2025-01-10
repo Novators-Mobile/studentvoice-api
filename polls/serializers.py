@@ -75,5 +75,5 @@ class MeetingWithTeacherGetSerializer(serializers.ModelSerializer):
         return "{} {} {}".format(teacher.last_name, teacher.first_name, teacher.patronymic)
 
     def get_subject_name(self, obj):
-        subject = Subject.objects.get(pk=obj.subject)
+        subject = Subject.objects.get(pk=obj.subject.pk)
         return subject.name
