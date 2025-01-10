@@ -7,5 +7,6 @@ urlpatterns = [
     path('subject/<int:subject_id>/teachers', views.subject_to_teacher),
     path('subject/<int:subject_id>/meetings', views.subject_to_meeting),
     path('teacher/<int:teacher_id>/subjects', views.teacher_to_subject),
-    path('teacher/<int:teacher_id>/meetings', views.teacher_to_meeting)
+    path('teacher/<int:teacher_id>/meetings', views.teacher_to_meeting),
+    path('meeting/<int:meeting_id>', views.get_meeting)
 ]
