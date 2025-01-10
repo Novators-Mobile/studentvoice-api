@@ -240,7 +240,7 @@ def subject_crud(request):
         data = Subject.objects.all()
         teacher = request.GET.get('teacher', None)
         if teacher:
-            data = data.filter(teachers__in=[teacher])
+            data = data.filter(lecture_teachers__in=[teacher]) | data.filter(practice_teachers__in=[teacher])
 
         university = request.GET.get('university', None)
         if university:
@@ -321,9 +321,9 @@ def subject_teacher_operations_lecture(request, pk, teacher_id):
         subject.save()
         return Response('teacher added')
     elif request.method == 'DELETE':
-        if teacher not in subject.teachers.all():
+        if teacher not in subject.lecture_teachers.all():
             return Response('teacher not found in this subject', status=status.HTTP_404_NOT_FOUND)
-        subject.teachers.remove(teacher)
+        subject.lecture_teachers.remove(teacher)
         subject.save()
         return Response('removed', status=status.HTTP_204_NO_CONTENT)
 
@@ -346,7 +346,7 @@ def subject_teacher_operations_practice(request, pk, teacher_id):
         subject.save()
         return Response('teacher added')
     elif request.method == 'DELETE':
-        if teacher not in subject.teachers.all():
+        if teacher not in subject.practice_teachers.all():
             return Response('teacher not found in this subject', status=status.HTTP_404_NOT_FOUND)
         subject.practice_teachers.remove(teacher)
         subject.save()
@@ -576,6 +576,27 @@ def teacher_detail(request, pk):
 
     elif request.method == 'PUT':
         serializer = TeacherSerializer(teacher, data=request.data)
+        if 'lecture_subjects' in serializer.initial_data:
+            lecture_subjects = serializer.initial_data.pop('lecture_subjects')
+            old_lecture_subjects = Subject.objects.filter(lecture_teachers__in=[pk]).all()
+            for old_subject in old_lecture_subjects:
+                old_subject.lecture_teachers.remove(pk)
+                old_subject.save()
+            lecture_subjects = Subject.objects.filter(pk__in=lecture_subjects).all()
+            for subject in lecture_subjects:
+                subject.lecture_teachers.add(pk)
+                subject.save()
+        if 'practice_subjects' in serializer.initial_data:
+            practice_subjects = serializer.initial_data.pop('practice_subjects')
+            old_practice_subjects = Subject.objects.filter(practice_teachers__in=[pk]).all()
+            for old_subject in old_practice_subjects:
+                old_subject.practice_teachers.remove(pk)
+                old_subject.save()
+
+            practice_subjects = Subject.objects.filter(pk__in=practice_subjects).all()
+            for subject in practice_subjects:
+                subject.practice_teachers.add(pk)
+                subject.save()
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
