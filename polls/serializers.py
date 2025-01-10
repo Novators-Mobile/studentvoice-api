@@ -53,7 +53,7 @@ class PollResultSerializer(serializers.ModelSerializer):
         return PollResult.objects.create(**validated_data)
 
 
-class MeetingGetSerializer(serializers.ModelSerializer):
+class MeetingWithTeacherGetSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     teacher_name = serializers.SerializerMethodField()
 
