@@ -194,6 +194,7 @@ class SearchResultSerializer(serializers.Serializer):
 
 class MonthSerializer(serializers.Serializer):
     name = serializers.CharField()
+    year = serializers.CharField()
     rating = serializers.FloatField()
 
 
@@ -201,8 +202,10 @@ class MonthStatisticsSerializer(serializers.Serializer):
     months = MonthSerializer(many=True)
 
 
+class WeekSerializer(serializers.Serializer):
+    week_number = serializers.IntegerField()
+    rating = serializers.FloatField()
+
+
 class WeekStatisticsSerializer(serializers.Serializer):
-    first_week = serializers.FloatField()
-    second_week = serializers.FloatField()
-    third_week = serializers.FloatField()
-    fourth_week = serializers.FloatField()
+    weeks = WeekSerializer(many=True)

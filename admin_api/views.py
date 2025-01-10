@@ -1,3 +1,5 @@
+import calendar
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .filters import TeacherFilter
@@ -198,13 +200,74 @@ def university_month_statistics(request, pk):
         month_ratings = [meeting['rating'] for meeting in meetings_serializer.data if meeting['rating'] > 0]
         if len(month_ratings) > 0:
             data['months'].append({"name": current_datetime.strftime("%B"),
-                                    "rating": sum(month_ratings) / len(month_ratings)})
+                                   "rating": sum(month_ratings) / len(month_ratings),
+                                   "year": str(current_datetime.year)})
 
-        current_datetime = datetime_min - datetime.timedelta(days=1)
+        current_datetime = datetime_min - timezone.timedelta(days=1)
 
     serializer = MonthStatisticsSerializer(data=data)
     if serializer.is_valid():
         return Response(serializer.data)
+
+
+@swagger_auto_schema(method='get', responses={
+    404: 'not found',
+    200: WeekStatisticsSerializer
+}, operation_description='get institute statistics by weeks in month',
+                     manual_parameters=[
+                         openapi.Parameter('year', openapi.IN_QUERY, 'needed year',
+                                           required=True,
+                                           type=openapi.TYPE_STRING),
+                         openapi.Parameter('month', openapi.IN_QUERY, 'needed month (January, February, etc)',
+                                           required=True,
+                                           type=openapi.TYPE_STRING),
+                     ])
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+@admin_required
+def university_weeks_in_month_statistics(request, pk):
+    month = request.GET.get('month', None)
+    year = request.GET.get('year', None)
+    university = pk
+    if year is None or month is None or university is None:
+        return Response("bad request: year or month or university is not specified",
+                        status=status.HTTP_400_BAD_REQUEST)
+    if month in calendar.month_name:
+        month_number = list(calendar.month_name).index(month)
+    else:
+        return Response("bad request: wrong month name", status=status.HTTP_400_BAD_REQUEST)
+
+    if not year.isdigit():
+        return Response("bad request: wrong year", status=status.HTTP_400_BAD_REQUEST)
+
+    start_datetime = timezone.datetime(year=int(year), month=month_number, day=1)
+    if month_number == 12:
+        end_datetime = timezone.datetime(year=int(year) + 1, month=1, day=1)
+    else:
+        end_datetime = timezone.datetime(year=int(year), month=month_number + 1, day=1)
+
+    current = start_datetime
+    data = {"weeks": []}
+    subjects = Subject.objects.filter(university=university).all()
+    subjects = [subject.pk for subject in subjects]
+    week_number = 1
+    while current < end_datetime:
+        week_end = current + timezone.timedelta(days=6 - current.weekday())
+        if week_end >= end_datetime:
+            week_end = end_datetime - timezone.timedelta(days=1)
+        week_meetings = Meeting.objects.filter(date__range=(current, week_end), subject__in=subjects).all()
+        meetings_serializer = MeetingGetSerializer(week_meetings, many=True)
+        week_ratings = [meeting['rating'] for meeting in meetings_serializer.data if meeting['rating'] > 0]
+        if len(week_ratings) > 0:
+            data['weeks'].append({"week_number": week_number,
+                                  "rating": sum(week_ratings) / len(week_ratings)})
+        else:
+            data['weeks'].append({"week_number": week_number, "rating": None})
+        week_number += 1
+        current = week_end + timezone.timedelta(days=1)
+
+    return Response(data)
 
 
 @swagger_auto_schema(method='post', request_body=SubjectSerializer,
