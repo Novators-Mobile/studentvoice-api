@@ -15,4 +15,3 @@ RUN python manage.py makemigrations polls
 
 EXPOSE 80
 
-CMD ["python", "manage.py", "migrate", ";", "python", "manage.py", "runserver", "0.0.0.0:80"]
