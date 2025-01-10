@@ -148,10 +148,12 @@ def subject_to_teacher(request, subject_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     lecture_teachers = subject.lecture_teachers.all()
-    teachers = lecture_teachers.union(subject.practice_teachers.all())
-    serializer = serializers.TeacherGetSerializer(teachers, many=True)
-    data = list(map(lambda x: [x['rating'], x['second_name'], x['first_name'], x['patronymic']], serializer.data))
-    if len(data) == 0:
+    practice_teachers = subject.practice_teachers.all()
+    lecture_serializer = serializers.TeacherGetSerializer(lecture_teachers, many=True)
+    practice_serializer = serializers.TeacherGetSerializer(practice_teachers, many=True)
+    lecture_data = list(map(lambda x: [x['rating'], x['second_name'], x['first_name'], x['patronymic']], lecture_serializer.data))
+    practice_data = list(map(lambda x: [x['rating'], x['second_name'], x['first_name'], x['patronymic']], practice_serializer.data))
+    if len(lecture_data) == 0 and len(practice_data) == 0:
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     header = NamedStyle(name="Заголовок документа", number_format="General",
@@ -170,18 +172,26 @@ def subject_to_teacher(request, subject_id):
 
     sheet.row_dimensions[1].height = 30
     sheet.column_dimensions['A'].width = 43
+    sheet.column_dimensions['B'].width = 11
 
     sheet.cell(1, 1, 'Отчет по ' + subject.name).style = header
     sheet.cell(2, 1, 'Дата и время обращения: ' + datetime.now().strftime("%d.%m.%Y %H:%M")).style = general
     sheet.cell(4, 1, 'Преподаватель').style = tableheader
-    sheet.cell(4, 2, 'Балл').style = tableheader
+    sheet.cell(4, 2, 'Формат').style = tableheader
+    sheet.cell(4, 3, 'Балл').style = tableheader
 
     lastrow = 5
-    for row in data:
+    for row in lecture_data:
         sheet.cell(lastrow, 1, '{} {} {}'.format(row[1], row[2], row[3])).style = general
-        sheet.cell(lastrow, 2, row[0]).style = numberStyle
+        sheet.cell(lastrow, 2, 'Лекции').style = general
+        sheet.cell(lastrow, 3, row[0]).style = numberStyle
         lastrow += 1
-    sheet.auto_filter.ref = 'A4:B' + str(lastrow)
+    for row in practice_data:
+        sheet.cell(lastrow, 1, '{} {} {}'.format(row[1], row[2], row[3])).style = general
+        sheet.cell(lastrow, 2, 'Практики').style = general
+        sheet.cell(lastrow, 3, row[0]).style = numberStyle
+        lastrow += 1
+    sheet.auto_filter.ref = 'A4:C' + str(lastrow)
     workbook.save("export.xlsx")
     with open('export.xlsx', 'rb') as f:
         file_data = f.read()
@@ -208,7 +218,7 @@ def subject_to_meeting(request, subject_id):
 
     meetings = Meeting.objects.filter(subject=subject_id).all()
     serializer = serializers.MeetingGetSerializer(meetings, many=True)
-    data = list(map(lambda x: [x['date'], x['rating']], serializer.data))
+    data = list(map(lambda x: [x['date'], x['type'], x['rating']], serializer.data))
     if len(data) == 0:
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -228,18 +238,21 @@ def subject_to_meeting(request, subject_id):
 
     sheet.row_dimensions[1].height = 30
     sheet.column_dimensions['A'].width = 43
+    sheet.column_dimensions['B'].width = 11
 
     sheet.cell(1, 1, 'Отчет по ' + subject.name).style = header
     sheet.cell(2, 1, 'Дата и время обращения: ' + datetime.now().strftime("%d.%m.%Y %H:%M")).style = general
     sheet.cell(4, 1, 'Пара').style = tableheader
-    sheet.cell(4, 2, 'Балл').style = tableheader
+    sheet.cell(4, 2, 'Формат').style = tableheader
+    sheet.cell(4, 3, 'Балл').style = tableheader
 
     lastrow = 5
     for row in data:
         sheet.cell(lastrow, 1, subject.name + ' (' + datetime.strftime(datetime.fromisoformat(row[0]), "%d.%m.%y") + ')').style = general
-        sheet.cell(lastrow, 2, row[1]).style = numberStyle
+        sheet.cell(lastrow, 2, row[1]).style = general
+        sheet.cell(lastrow, 3, row[2]).style = numberStyle
         lastrow += 1
-    sheet.auto_filter.ref = 'A4:B' + str(lastrow)
+    sheet.auto_filter.ref = 'A4:C' + str(lastrow)
     workbook.save("export.xlsx")
     with open('export.xlsx', 'rb') as f:
         file_data = f.read()
@@ -265,10 +278,12 @@ def teacher_to_subject(request, teacher_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     lectures = teacher.lecture_teachers.all()
-    subjects = lectures.union(teacher.practice_teachers.all())
-    serializer = serializers.SubjectGetSerializer(subjects, many=True)
-    data = list(map(lambda x: [x['name'], x['rating']], serializer.data))
-    if len(data) == 0:
+    practices = teacher.practice_teachers.all()
+    lectures_serializer = serializers.SubjectGetSerializer(lectures, many=True)
+    practices_serializer = serializers.SubjectGetSerializer(practices, many=True)
+    lectures_data = list(map(lambda x: [x['name'], x['rating']], lectures_serializer.data))
+    practices_data = list(map(lambda x: [x['name'], x['rating']], practices_serializer.data))
+    if len(lectures_data) == 0 and len(practices_data) == 0:
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     header = NamedStyle(name="Заголовок документа", number_format="General",
@@ -287,18 +302,26 @@ def teacher_to_subject(request, teacher_id):
 
     sheet.row_dimensions[1].height = 30
     sheet.column_dimensions['A'].width = 43
+    sheet.column_dimensions['B'].width = 11
 
     sheet.cell(1, 1, 'Отчет по {} {} {}'.format(teacher.second_name, teacher.first_name, teacher.patronymic)).style = header
     sheet.cell(2, 1, 'Дата и время обращения: ' + datetime.now().strftime("%d.%m.%Y %H:%M")).style = general
     sheet.cell(4, 1, 'Дисциплина').style = tableheader
-    sheet.cell(4, 2, 'Балл').style = tableheader
+    sheet.cell(4, 2, 'Формат').style = tableheader
+    sheet.cell(4, 3, 'Балл').style = tableheader
 
     lastrow = 5
-    for row in data:
+    for row in lectures_data:
         sheet.cell(lastrow, 1, row[0]).style = general
-        sheet.cell(lastrow, 2, row[1]).style = numberStyle
+        sheet.cell(lastrow, 2, 'Лекции').style = general
+        sheet.cell(lastrow, 3, row[1]).style = numberStyle
         lastrow += 1
-    sheet.auto_filter.ref = 'A4:B' + str(lastrow)
+    for row in practices_data:
+        sheet.cell(lastrow, 1, row[0]).style = general
+        sheet.cell(lastrow, 2, 'Практики').style = general
+        sheet.cell(lastrow, 3, row[1]).style = numberStyle
+        lastrow += 1
+    sheet.auto_filter.ref = 'A4:C' + str(lastrow)
 
     workbook.save("export.xlsx")
     with open('export.xlsx', 'rb') as f:
@@ -325,7 +348,7 @@ def teacher_to_meeting(request, teacher_id):
 
     meetings = Meeting.objects.filter(teacher=teacher_id).all()
     serializer = serializers.MeetingGetSerializer(meetings, many=True)
-    data = list(map(lambda x: [Subject.objects.get(pk=x['subject']).name, x['date'], x['rating']], serializer.data))
+    data = list(map(lambda x: [Subject.objects.get(pk=x['subject']).name, x['date'], x['type'], x['rating']], serializer.data))
     if len(data) == 0:
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -345,18 +368,21 @@ def teacher_to_meeting(request, teacher_id):
 
     sheet.row_dimensions[1].height = 30
     sheet.column_dimensions['A'].width = 43
+    sheet.column_dimensions['B'].width = 11
 
     sheet.cell(1, 1, 'Отчет по {} {} {}'.format(teacher.second_name, teacher.first_name, teacher.patronymic)).style = header
     sheet.cell(2, 1, 'Дата и время обращения: ' + datetime.now().strftime("%d.%m.%Y %H:%M")).style = general
     sheet.cell(4, 1, 'Пара').style = tableheader
-    sheet.cell(4, 2, 'Балл').style = tableheader
+    sheet.cell(4, 2, 'Формат').style = tableheader
+    sheet.cell(4, 3, 'Балл').style = tableheader
 
     lastrow = 5
     for row in data:
         sheet.cell(lastrow, 1, row[0] + ' (' + datetime.strftime(datetime.fromisoformat(row[1]), "%d.%m.%y") + ')').style = general
-        sheet.cell(lastrow, 2, row[2]).style = numberStyle
+        sheet.cell(lastrow, 1, row[2]).style = general
+        sheet.cell(lastrow, 2, row[3]).style = numberStyle
         lastrow += 1
-    sheet.auto_filter.ref = 'A4:B' + str(lastrow)
+    sheet.auto_filter.ref = 'A4:C' + str(lastrow)
 
     workbook.save("export.xlsx")
     with open('export.xlsx', 'rb') as f:

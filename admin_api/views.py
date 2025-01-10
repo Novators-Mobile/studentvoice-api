@@ -12,6 +12,8 @@ from rest_framework import status
 from .models import CustomUser, University
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .utils import generate_password
@@ -20,6 +22,7 @@ from rest_framework.authentication import SessionAuthentication
 from .authentication import BearerTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from os import getenv
 
 login_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
