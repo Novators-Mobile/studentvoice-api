@@ -32,6 +32,7 @@ schema_view = get_schema_view(
         default_version="v1",
         description="api for StudentVoice project",
     ),
+    url="https://novatorsmobile.ru/api/",
     generator_class=APISchemeGenerator,
     public=True,
     permission_classes=[permissions.AllowAny]
