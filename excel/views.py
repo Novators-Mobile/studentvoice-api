@@ -218,7 +218,7 @@ def subject_to_meeting(request, subject_id):
 
     meetings = Meeting.objects.filter(subject=subject_id).all()
     serializer = serializers.MeetingGetSerializer(meetings, many=True)
-    data = list(map(lambda x: [x['date'], x['type'], x['rating']], serializer.data))
+    data = list(map(lambda x: [x['date'], 'Лекции' if x['type'] == 'lecture' else 'Практики', x['rating']], serializer.data))
     if len(data) == 0:
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -348,7 +348,7 @@ def teacher_to_meeting(request, teacher_id):
 
     meetings = Meeting.objects.filter(teacher=teacher_id).all()
     serializer = serializers.MeetingGetSerializer(meetings, many=True)
-    data = list(map(lambda x: [Subject.objects.get(pk=x['subject']).name, x['date'], x['type'], x['rating']], serializer.data))
+    data = list(map(lambda x: [Subject.objects.get(pk=x['subject']).name, x['date'], 'Лекции' if x['type'] == 'lecture' else 'Практики', x['rating']], serializer.data))
     if len(data) == 0:
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -425,7 +425,7 @@ def get_meeting(request, meeting_id):
     sheet.cell(1, 1, 'Отчет по паре').style = header
     sheet.cell(2, 1, 'Преподаватель: {} {} {}'.format(meeting.teacher.second_name, meeting.teacher.first_name, meeting.teacher.patronymic)).style = tableheader
     sheet.cell(3, 1, 'Дисциплина: ' + meeting.subject.name).style = tableheader
-    sheet.cell(4, 1, 'Формат: ' + meeting.type).style = tableheader
+    sheet.cell(4, 1, 'Формат: ' + 'Лекции' if meeting.type == 'lecture' else 'Практики').style = tableheader
     sheet.cell(5, 1, 'Дата и время пары: ' + meeting.date.strftime("%d.%m.%Y %H:%M")).style = tableheader
     sheet.cell(6, 1, 'Дата и время обращения: ' + datetime.now().strftime("%d.%m.%Y %H:%M")).style = tableheader
     sheet.cell(8, 1, 'Параметр').style = tableheader
