@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from os import getenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-tb0cpy1(8p%*scz9+9k36tym8=4b!6uv*=*7^0=lh*%%%b@14t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['novatorsmobile.ru', '127.0.0.1']
+ALLOWED_HOSTS = ['novatorsmobile.ru', '127.0.0.1', 'localhost']
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
@@ -104,8 +105,12 @@ WSGI_APPLICATION = 'studentvoiceapi.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': getenv('DB_NAME'),
+        'USER': getenv('DB_USER'),
+        'PASSWORD': getenv('DB_PASSWORD'),
+        'HOST': getenv('DB_HOST'),
+        'PORT': getenv('DB_PORT'),
     }
 }
 

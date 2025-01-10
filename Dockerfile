@@ -12,8 +12,6 @@ COPY . .
 
 RUN python manage.py makemigrations admin_api
 RUN python manage.py makemigrations polls
-RUN python manage.py migrate
 
 EXPOSE 80
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:80"]
