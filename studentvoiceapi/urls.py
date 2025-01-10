@@ -17,8 +17,14 @@ Including another URLconf
 from django.urls import path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
+from drf_yasg.generators import OpenAPISchemaGenerator
 from drf_yasg import openapi
 
+class APISchemeGenerator(OpenAPISchemaGenerator):
+    def get_schema(self, request=None, public=False):
+        schema = super().get_schema(request, public)
+        schema.base_path = '/api/'
+        return schema
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -26,6 +32,7 @@ schema_view = get_schema_view(
         default_version="v1",
         description="api for StudentVoice project",
     ),
+    generator_class=APISchemeGenerator,
     public=True,
     permission_classes=[permissions.AllowAny]
 )
