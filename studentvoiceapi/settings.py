@@ -86,7 +86,7 @@ ROOT_URLCONF = 'studentvoiceapi.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -166,3 +166,12 @@ REST_FRAMEWORK = {
            'rest_framework.filters.SearchFilter',
        ),
    }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = getenv("EMAIL_SERVER")
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = getenv("EMAIL_USER")
+EMAIL_HOST_PASSWORD = getenv("EMAIL_PASSWORD")
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = 'StudentVoice'

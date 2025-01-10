@@ -588,6 +588,15 @@ def teacher_crud(request):
                 subject.practice_teachers.add(teacher)
                 subject.save()
             data['password'] = password
+            html_content = render_to_string('new_user.html', {'password': password})
+            email = EmailMessage(
+                'Данные для входа в StudentVoice',
+                html_content,
+                'StudentVoice',
+                [data['email']]
+            )
+            email.content_subtype = "html"
+            email.send()
             return Response(data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
