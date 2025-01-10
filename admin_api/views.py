@@ -591,24 +591,39 @@ def teacher_crud(request):
 
     elif request.method == 'GET':
         data = Teacher.objects.all()
-        filterset_class = TeacherFilter
         subject_id = request.GET.get('subject', None)
         search = request.GET.get('search', None)
+        university = request.GET.get('university', None)
         if search:
             search = search.lower()
             data = data.filter((Q(first_name__contains=search) | Q(second_name__contains=search)
                                 | Q(patronymic__contains=search)
-                                | Q(username__contains=search)) & Q(user_type__contains="teacher"))
-        if subject_id is not None:
-            data = data.filter(subject__id=subject_id)
-            serializer = TeacherGetSerializer(data, many=True)
+                                | Q(username__contains=search)))
+        if subject_id:
+            try:
+                if university:
+                    subject = Subject.objects.get(pk=subject_id, university=university)
+                else:
+                    subject = Subject.objects.get(pk=subject_id)
+            except Subject.DoesNotExist:
+                return Response([])
+            lecture_teachers = [teacher.pk for teacher in subject.lecture_teachers.all()]
+            practice_teachers = [teacher.pk for teacher in subject.practice_teachers.all()]
+            teachers = Teacher.objects.filter(
+                Q(pk__in=lecture_teachers) | Q(pk__in=practice_teachers)).all()
+            if search:
+                search = search.lower()
+                teachers = teachers.filter((Q(first_name__contains=search) | Q(second_name__contains=search)
+                                    | Q(patronymic__contains=search)
+                                    | Q(username__contains=search)))
+            serializer = TeacherGetSerializer(teachers, many=True)
             return Response(serializer.data)
-        else:
-            filterset = filterset_class(request.GET, queryset=data)
-            if filterset.is_valid():
-                data = filterset.qs
-            serializer = TeacherGetSerializer(data, many=True)
-            return Response(serializer.data)
+
+        if university:
+            data = data.filter(university=university)
+
+        serializer = TeacherGetSerializer(data, many=True)
+        return Response(serializer.data)
 
 
 @swagger_auto_schema(method='get', responses={
