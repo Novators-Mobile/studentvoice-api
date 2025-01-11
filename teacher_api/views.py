@@ -151,5 +151,6 @@ def get_teacher_subjects(request):
     subjects = Subject.objects.filter(Q(lecture_teachers__in=[current_user])
                                       | Q(practice_teachers__in=[current_user])).all()
     serializer = SubjectGetSerializer(data=subjects, many=True)
-    return Response(serializer.data)
+    if serializer.is_valid():
+        return Response(serializer.data)
 
