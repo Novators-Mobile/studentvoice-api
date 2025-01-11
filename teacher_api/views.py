@@ -7,11 +7,13 @@ from admin_api.models import Meeting, Teacher, Subject
 from admin_api.serializers import MeetingGetSerializer, TeacherGetSerializer, SubjectGetSerializer
 from rest_framework.response import Response
 from admin_api.serializers import MeetingSerializer
+from polls.serializers import MeetingWithTeacherGetSerializer
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .serializers import MeetingPutSerializer
+from .serializers import MeetingPutSerializer, PollParticipantSerializer
 from django.db.models import Q
+from polls.models import PollResult
 
 
 @swagger_auto_schema(method='post', request_body=MeetingSerializer,
@@ -69,7 +71,7 @@ def meeting_crud(request):
 
 
 @swagger_auto_schema(method='get', responses={
-    200: MeetingGetSerializer,
+    200: MeetingWithTeacherGetSerializer,
     404: 'not found'
 })
 @swagger_auto_schema(method='put', request_body=MeetingPutSerializer,
@@ -93,12 +95,13 @@ def meeting_detail(request, pk):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = MeetingGetSerializer(meeting)
+        serializer = MeetingWithTeacherGetSerializer(meeting)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = MeetingPutSerializer(request.data)
+        serializer = MeetingPutSerializer(meeting, data=request.data)
         if serializer.is_valid():
+            serializer.save()
             return Response(serializer.data)
 
     elif request.method == 'DELETE':
@@ -155,3 +158,15 @@ def get_teacher_subjects(request):
 
     return Response(serializer.data)
 
+
+@swagger_auto_schema(method='get', responses={
+    200: PollParticipantSerializer,
+    404: 'not found'
+}, operation_description='get poll\'s participants')
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_polls_participants(request, meeting_id):
+    poll_results = PollResult.objects.filter(poll=meeting_id).all()
+    serializer = PollParticipantSerializer(poll_results, many=True)
+    return Response(serializer.data)
