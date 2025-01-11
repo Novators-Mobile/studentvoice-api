@@ -11,7 +11,7 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .serializers import MeetingPutSerializer
-
+from django.db.models import Q
 
 @swagger_auto_schema(method='post', request_body=MeetingSerializer,
                      responses={
@@ -137,3 +137,19 @@ def subject_detail(request, pk):
 
     serializer = SubjectGetSerializer(subject)
     return Response(serializer.data)
+
+
+@swagger_auto_schema(method='get', responses={
+    200: SubjectGetSerializer,
+    404: 'not found'
+}, operation_description='get info about current logged in teacher\'s subjects')
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, BearerTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_teacher_subjects(request):
+    current_user = request.user.id
+    subjects = Subject.objects.filter(Q(lecture_teachers__in=[current_user])
+                                      | Q(practice_teachers__in=[current_user])).all()
+    serializer = SubjectGetSerializer(data=subjects, many=True)
+    return Response(serializer.data)
+
