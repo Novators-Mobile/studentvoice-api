@@ -13,6 +13,7 @@ from drf_yasg import openapi
 from .serializers import MeetingPutSerializer
 from django.db.models import Q
 
+
 @swagger_auto_schema(method='post', request_body=MeetingSerializer,
                      responses={
                          201: 'created',
@@ -150,7 +151,7 @@ def get_teacher_subjects(request):
     current_user = request.user.id
     subjects = Subject.objects.filter(Q(lecture_teachers__in=[current_user])
                                       | Q(practice_teachers__in=[current_user])).all()
-    serializer = SubjectGetSerializer(data=subjects, many=True)
-    if serializer.is_valid():
-        return Response(serializer.data)
+    serializer = SubjectGetSerializer(subjects, many=True)
+
+    return Response(serializer.data)
 
