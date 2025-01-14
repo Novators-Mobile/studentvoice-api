@@ -306,7 +306,7 @@ def subject_crud(request):
         data = Subject.objects.all()
         teacher = request.GET.get('teacher', None)
         if teacher:
-            data = data.filter(lecture_teachers__in=[teacher]) | data.filter(practice_teachers__in=[teacher])
+            data = data.filter(Q(lecture_teachers__in=[teacher]) | Q(practice_teachers__in=[teacher]))
 
         university = request.GET.get('university', None)
         if university:
@@ -315,6 +315,8 @@ def subject_crud(request):
         if search:
             search = search.lower()
             data = data.filter(name__icontains=search)
+
+        data = data.distinct()
         serializer = SubjectGetSerializer(data, many=True)
 
         return Response(serializer.data)

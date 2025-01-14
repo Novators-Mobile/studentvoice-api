@@ -153,7 +153,7 @@ def subject_detail(request, pk):
 def get_teacher_subjects(request):
     current_user = request.user.id
     subjects = Subject.objects.filter(Q(lecture_teachers__in=[current_user])
-                                      | Q(practice_teachers__in=[current_user])).all()
+                                      | Q(practice_teachers__in=[current_user])).distinct().all()
     serializer = SubjectGetSerializer(subjects, many=True)
 
     return Response(serializer.data)
